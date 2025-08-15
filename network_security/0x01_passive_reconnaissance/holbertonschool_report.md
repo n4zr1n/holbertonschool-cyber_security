@@ -3,16 +3,16 @@ Holberton School - Reconnaissance Summary (from Shodan Data)
 Subdomains, IPs, Locations, and Hosting Info
 
 Subdomain:                          IP address:       Hostname:                                            Provider:                       Location:
-yriry2.holbertonschool.com          52.47.143.83      ec2-52-47-143-83.eu-west-3.compute.amazonaws.com     Amazon Data Services France     Paris, France
-staging-apply.holbertonschool.com   13.37.67.17       ec2-13-37-67-17.eu-west-3.compute.amazonaws.com      Amazon Data Services France     Paris, France    
-apply.holbertonschool.com           15.188.218.54     ec2-15-188-218-54.eu-west-3.compute.amazonaws.com    Amazon Data Services France     Paris, France  
-apply.holbertonschool.com           13.37.181.187     ec2-13-37-181-187.eu-west-3.compute.amazonaws.com    Amazon Data Services France     Paris, France  
-read.holbertonschool.com            15.236.251.91     ec2-15-236-251-91.eu-west-3.compute.amazonaws.com    Amazon Data Services France     Paris, France  
-staging-apply.holbertonschool.com   35.181.42.84      ec2-35-181-42-84.eu-west-3.compute.amazonaws.com     Amazon Data Services France     Paris, France   
-apply.holbertonschool.com           51.44.231.239     ec2-51-44-231-239.eu-west-3.compute.amazonaws.com    A100 ROW Inc                    Paris, France   
-staging-apply.holbertonschool.com   13.38.221.164     ec2-13-38-221-164.eu-west-3.compute.amazonaws.com    Amazon Data Services France     Paris, France  
-read.holbertonschool.com            15.188.124.24     ec2-15-188-124-24.eu-west-3.compute.amazonaws.com    Amazon Data Services France     Paris, France  
-apply.holbertonschool.com           15.188.230.158    ec2-15-188-230-158.eu-west-3.compute.amazonaws.com   Amazon Data Services France     Paris, France 
+- yriry2.holbertonschool.com          52.47.143.83      ec2-52-47-143-83.eu-west-3.compute.amazonaws.com     Amazon Data Services France     Paris, France
+- staging-apply.holbertonschool.com   13.37.67.17       ec2-13-37-67-17.eu-west-3.compute.amazonaws.com      Amazon Data Services France     Paris, France    
+- apply.holbertonschool.com           15.188.218.54     ec2-15-188-218-54.eu-west-3.compute.amazonaws.com    Amazon Data Services France     Paris, France  
+- apply.holbertonschool.com           13.37.181.187     ec2-13-37-181-187.eu-west-3.compute.amazonaws.com    Amazon Data Services France     Paris, France  
+- read.holbertonschool.com            15.236.251.91     ec2-15-236-251-91.eu-west-3.compute.amazonaws.com    Amazon Data Services France     Paris, France  
+- vstaging-apply.holbertonschool.com   35.181.42.84      ec2-35-181-42-84.eu-west-3.compute.amazonaws.com     Amazon Data Services France     Paris, France   
+- apply.holbertonschool.com           51.44.231.239     ec2-51-44-231-239.eu-west-3.compute.amazonaws.com    A100 ROW Inc                    Paris, France   
+- staging-apply.holbertonschool.com   13.38.221.164     ec2-13-38-221-164.eu-west-3.compute.amazonaws.com    Amazon Data Services France     Paris, France  
+- read.holbertonschool.com            15.188.124.24     ec2-15-188-124-24.eu-west-3.compute.amazonaws.com    Amazon Data Services France     Paris, France  
+- apply.holbertonschool.com           15.188.230.158    ec2-15-188-230-158.eu-west-3.compute.amazonaws.com   Amazon Data Services France     Paris, France 
 
 
 SSL Certificate Information
@@ -42,6 +42,14 @@ Observed Technologies and Behaviors
 - Frameworks: Not directly visible from Shodan; likely custom apps with Nginx reverse proxy
 - Access Control: Some endpoints return "401 Unauthorized", indicating authenticated APIs or admin panels
 - All instances are hosted in Amazon AWS (EC2), in "eu-west-3" (Paris) region
+
+
+Observed Subdomains
+
+- apply.holbertonschool.com — Primary admissions portal
+- staging-apply.holbertonschool.com — Development or staging version of admissions
+- read.holbertonschool.com — Possibly content or learning platform
+- yriry2.holbertonschool.com — Unknown function, potentially internal
 
 
 blog.holbertonschool.com 	192.0.78.230  192.0.78.0/24  United States 			
