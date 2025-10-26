@@ -1,2 +1,2 @@
 #!/bin/bash
-semanage user
+semanage user -l
