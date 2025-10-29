@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo netstat | grep smtp && echo "STARTTLS configured" || echo "STARTTLS not configured"
+grep smtpd_tls_security_level && echo "STARTTLS configured" || echo "STARTTLS not configured"
