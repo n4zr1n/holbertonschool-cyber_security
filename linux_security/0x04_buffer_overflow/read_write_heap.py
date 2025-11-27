@@ -1,68 +1,77 @@
 #!/usr/bin/env python3
-import sys
 import os
+import sys
 import re
+import ctypes
+import subprocess
+import time
 
-def usage_error(msg=""):
-    if msg:
-        print(msg)
-    print("Usage: read_write_heap.py pid search_string replace_string")
+def usage():
+    print("Usage: read_write_heap.py ./program search_string replace_string")
     sys.exit(1)
 
-def main():
-    if len(sys.argv) != 4:
-        usage_error()
+if len(sys.argv) != 4:
+    usage()
 
-    pid = sys.argv[1]
-    search = sys.argv[2].encode("ascii")
-    replace = sys.argv[3].encode("ascii")
+binary = sys.argv[1]
+search = sys.argv[2].encode()
+replace = sys.argv[3].encode()
 
-    if len(replace) > len(search):
-        usage_error("Error: replace_string cannot be longer than search_string")
+if len(replace) > len(search):
+    print("Error: replace_string cannot be longer than search_string")
+    usage()
 
-    maps_path = f"/proc/{pid}/maps"
-    mem_path = f"/proc/{pid}/mem"
+# Start the program as a child
+print(f"[+] Launching {binary}...")
+proc = subprocess.Popen([binary])
 
-    try:
-        with open(maps_path, "r") as maps_file:
-            heap_start = None
-            heap_end = None
+pid = proc.pid
+print(f"[+] Child pid = {pid}")
 
-            for line in maps_file:
-                if "[heap]" in line:
-                    m = re.match(r"([0-9a-f]+)-([0-9a-f]+)", line)
-                    if m:
-                        heap_start = int(m.group(1), 16)
-                        heap_end = int(m.group(2), 16)
-                        break
+time.sleep(1)  # give program time to allocate heap
 
-        if heap_start is None:
-            usage_error("Could not find heap region")
+# ptrace attach WILL succeed because this is our child
+libc = ctypes.CDLL("libc.so.6")
+PTRACE_ATTACH = 16
+PTRACE_DETACH = 17
 
-        print(f"[+] Heap region: {hex(heap_start)} - {hex(heap_end)}")
+print("[+] Attaching with ptrace...")
+if libc.ptrace(PTRACE_ATTACH, pid, None, None) != 0:
+    print("[-] ptrace attach failed (unexpected)")
+    sys.exit(1)
 
-        with open(mem_path, "r+b", buffering=0) as mem_file:
-            mem_file.seek(heap_start)
-            heap = mem_file.read(heap_end - heap_start)
+os.waitpid(pid, 0)
 
-            idx = heap.find(search)
-            if idx == -1:
-                print("[-] String not found in heap")
-                return
+# Find heap
+maps = open(f"/proc/{pid}/maps").readlines()
+heap_start = heap_end = None
+for line in maps:
+    if "[heap]" in line:
+        m = re.match(r"([0-9a-f]+)-([0-9a-f]+)", line)
+        heap_start = int(m.group(1), 16)
+        heap_end = int(m.group(2), 16)
+        break
 
-            print(f"[+] Found '{search.decode()}' at offset {hex(heap_start + idx)}")
+print(f"[+] Heap region: {hex(heap_start)} - {hex(heap_end)}")
 
-            mem_file.seek(heap_start + idx)
-            mem_file.write(replace + b"\x00" * (len(search) - len(replace)))
+# Open mem
+mem = open(f"/proc/{pid}/mem", "r+b", buffering=0)
+mem.seek(heap_start)
+heap = mem.read(heap_end - heap_start)
 
-            print(f"[+] Replaced with '{replace.decode()}'")
+idx = heap.find(search)
+if idx == -1:
+    print("[-] String not found")
+else:
+    addr = heap_start + idx
+    print(f"[+] Found at {hex(addr)}")
 
-    except FileNotFoundError:
-        usage_error("Error: process does not exist")
-    except PermissionError:
-        usage_error("Permission denied (try sudo)")
-    except Exception as e:
-        usage_error(f"Unexpected error: {e}")
+    mem.seek(addr)
+    mem.write(replace + b"\x00" * (len(search) - len(replace)))
+    print(f"[+] Replaced with {replace.decode()}")
 
-if __name__ == "__main__":
-    main()
+# detach
+libc.ptrace(PTRACE_DETACH, pid, None, None)
+
+print("[+] Done. Press Ctrl+C to stop program.")
+proc.wait()
