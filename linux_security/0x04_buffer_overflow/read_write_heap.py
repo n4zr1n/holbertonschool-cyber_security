@@ -31,7 +31,7 @@ def main():
         heap_start = None
         heap_end = None
 
-        # Find heap region
+        # Find the heap segment
         with open(maps_path, "r") as maps_file:
             for line in maps_file:
                 if "[heap]" in line:
@@ -44,19 +44,20 @@ def main():
             print("Heap not found.")
             sys.exit(1)
 
+        # Open memory for reading and writing
         with open(mem_path, "r+b") as mem_file:
-            # Search string in heap byte by byte
             for offset in range(heap_end - heap_start - len(search) + 1):
                 mem_file.seek(heap_start + offset)
                 chunk = mem_file.read(len(search))
                 if chunk == search:
-                    # Overwrite only the first len(replace) bytes
+                    # Build replacement: pad with null bytes to match length
+                    new_bytes = replace.ljust(len(search), b'\0')
                     mem_file.seek(heap_start + offset)
-                    mem_file.write(replace)
+                    mem_file.write(new_bytes)
                     print("String replaced.")
                     return
 
-            # String not found
+            # Not found
             print("String not found.")
             sys.exit(0)
 
