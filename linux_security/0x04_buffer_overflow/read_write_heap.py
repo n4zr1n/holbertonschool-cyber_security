@@ -13,7 +13,7 @@ def usage_error():
 
 
 def main():
-    """Main program logic."""
+    """Main program."""
     if len(sys.argv) != 4:
         usage_error()
 
@@ -25,10 +25,10 @@ def main():
     mem_path = "/proc/{}/mem".format(pid)
 
     try:
-        # Locate heap region
         heap_start = None
         heap_end = None
 
+        # Find heap region
         with open(maps_path, "r") as maps_file:
             for line in maps_file:
                 if "[heap]" in line:
@@ -39,23 +39,19 @@ def main():
                     break
 
         if heap_start is None:
-            return  # silent
+            return  # silent success-like behavior
 
-        # Open memory and search within heap
+        # Read and write heap
         with open(mem_path, "r+b", buffering=0) as mem_file:
             mem_file.seek(heap_start)
-            heap = mem_file.read(heap_end - heap_start)
+            heap_contents = mem_file.read(heap_end - heap_start)
 
-            idx = heap.find(search)
-            if idx == -1:
+            index = heap_contents.find(search)
+            if index == -1:
                 return  # silent
 
-            # Write replacement
-            mem_file.seek(heap_start + idx)
+            mem_file.seek(heap_start + index)
             mem_file.write(replace[:len(search)])
-
-            # 👍 REQUIRED FOR CHECK 7
-            print("Found and replaced")
 
     except Exception:
         sys.exit(1)
