@@ -1,70 +1,57 @@
 #!/usr/bin/python3
 """
-read_write_heap.py - Find and replace a string in the heap of a running process.
-
-Usage:
-    read_write_heap.py pid search_string replace_string
+read_write_heap.py - Replace a string in the heap of a running process.
 """
 
 import sys
 
 
-def error():
-    """Print usage error and exit with status 1."""
+def usage_error():
+    """Print usage error and exit."""
     print("Usage: read_write_heap.py pid search_string replace_string")
     sys.exit(1)
 
 
 def main():
-    """Main program."""
+    """Main program logic."""
     if len(sys.argv) != 4:
-        error()
+        usage_error()
 
     pid = sys.argv[1]
-    search = sys.argv[2]
-    replace = sys.argv[3]
-
-    if len(search) != len(replace):
-        error()
-
-    search_b = search.encode("ascii")
-    replace_b = replace.encode("ascii")
+    search = sys.argv[2].encode()
+    replace = sys.argv[3].encode()
 
     maps_path = "/proc/{}/maps".format(pid)
     mem_path = "/proc/{}/mem".format(pid)
 
     try:
+        # Find heap region
         heap_start = None
         heap_end = None
 
         with open(maps_path, "r") as maps_file:
             for line in maps_file:
                 if "[heap]" in line:
-                    parts = line.split()
-                    addr = parts[0]
-                    perms = parts[1]
-
-                    if "rw" not in perms:
-                        sys.exit(1)
-
-                    start_str, end_str = addr.split("-")
-                    heap_start = int(start_str, 16)
-                    heap_end = int(end_str, 16)
+                    addr = line.split()[0]
+                    start, end = addr.split("-")
+                    heap_start = int(start, 16)
+                    heap_end = int(end, 16)
                     break
 
         if heap_start is None:
-            sys.exit(1)
+            return
 
+        # Search and replace inside heap
         with open(mem_path, "r+b", buffering=0) as mem_file:
             mem_file.seek(heap_start)
-            heap_data = mem_file.read(heap_end - heap_start)
+            heap = mem_file.read(heap_end - heap_start)
 
-            idx = heap_data.find(search_b)
+            idx = heap.find(search)
             if idx == -1:
                 return
 
             mem_file.seek(heap_start + idx)
-            mem_file.write(replace_b)
+            mem_file.write(replace[:len(search)])
 
     except Exception:
         sys.exit(1)
