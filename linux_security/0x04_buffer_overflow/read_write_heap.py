@@ -21,14 +21,18 @@ def main():
     search = sys.argv[2].encode()
     replace = sys.argv[3].encode()
 
-    maps_path = "/proc/{}/maps".format(pid)
-    mem_path = "/proc/{}/mem".format(pid)
+    if len(replace) > len(search):
+        print("Replace string is too long.")
+        sys.exit(1)
+
+    maps_path = f"/proc/{pid}/maps"
+    mem_path = f"/proc/{pid}/mem"
 
     try:
         heap_start = None
         heap_end = None
 
-        # Find heap region
+        # Locate the heap region
         with open(maps_path, "r") as maps_file:
             for line in maps_file:
                 if "[heap]" in line:
@@ -42,8 +46,8 @@ def main():
             print("Heap not found.")
             sys.exit(1)
 
-        # Read and write memory
-        with open(mem_path, "r+b", buffering=0) as mem_file:
+        # Read and write the heap
+        with open(mem_path, "r+b") as mem_file:
             mem_file.seek(heap_start)
             heap = mem_file.read(heap_end - heap_start)
 
@@ -52,16 +56,13 @@ def main():
                 print("String not found.")
                 sys.exit(0)
 
-            # Write replacement
             mem_file.seek(heap_start + index)
-            # pad replace to same size if needed
             new = replace.ljust(len(search), b'\0')
             mem_file.write(new)
 
             print("String replaced.")
 
-    except Exception as e:
-        print("Error:", e)
+    except Exception:
         sys.exit(1)
 
 
