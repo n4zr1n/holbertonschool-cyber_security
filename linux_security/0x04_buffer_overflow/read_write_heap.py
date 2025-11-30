@@ -21,7 +21,7 @@ def main():
         sys.exit(1)
 
     try:
-        # Find heap region
+        # Locate heap
         heap_start = heap_end = None
         with open(f"/proc/{pid}/maps") as maps:
             for line in maps:
@@ -36,15 +36,14 @@ def main():
             sys.exit(1)
 
         # Open process memory
-        with open(f"/proc/{pid}/mem", "r+b") as mem_file:
+        with open(f"/proc/{pid}/mem", "r+b") as mem:
             # Scan heap byte by byte
             for offset in range(heap_end - heap_start - len(search) + 1):
-                mem_file.seek(heap_start + offset)
-                chunk = mem_file.read(len(search))
+                mem.seek(heap_start + offset)
+                chunk = mem.read(len(search))
                 if chunk == search:
-                    # Overwrite only the replacement bytes
-                    mem_file.seek(heap_start + offset)
-                    mem_file.write(replace)
+                    mem.seek(heap_start + offset)
+                    mem.write(replace)  # only replacement bytes
                     print("String replaced.")
                     return
 
