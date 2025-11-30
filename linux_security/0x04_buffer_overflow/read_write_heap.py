@@ -31,7 +31,7 @@ def main():
         heap_start = None
         heap_end = None
 
-        # Find the heap segment
+        # Find heap segment
         with open(maps_path, "r") as maps_file:
             for line in maps_file:
                 if "[heap]" in line:
@@ -44,22 +44,23 @@ def main():
             print("Heap not found.")
             sys.exit(1)
 
-        # Open memory for reading and writing
+        # Open memory
         with open(mem_path, "r+b") as mem_file:
-            for offset in range(heap_end - heap_start - len(search) + 1):
-                mem_file.seek(heap_start + offset)
-                chunk = mem_file.read(len(search))
-                if chunk == search:
-                    # Build replacement: pad with null bytes to match length
-                    new_bytes = replace.ljust(len(search), b'\0')
-                    mem_file.seek(heap_start + offset)
-                    mem_file.write(new_bytes)
-                    print("String replaced.")
-                    return
+            # Read heap
+            mem_file.seek(heap_start)
+            heap = mem_file.read(heap_end - heap_start)
 
-            # Not found
-            print("String not found.")
-            sys.exit(0)
+            # Find first occurrence of search string
+            index = heap.find(search)
+            if index == -1:
+                print("String not found.")
+                sys.exit(0)
+
+            # Overwrite only the bytes of the replacement string
+            mem_file.seek(heap_start + index)
+            mem_file.write(replace)
+
+            print("String replaced.")
 
     except Exception:
         sys.exit(1)
