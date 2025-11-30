@@ -13,7 +13,6 @@ def usage_error():
 
 
 def main():
-    """Main program."""
     if len(sys.argv) != 4:
         usage_error()
 
@@ -24,43 +23,39 @@ def main():
     if len(replace) > len(search):
         sys.exit(1)
 
-    maps_path = f"/proc/{pid}/maps"
-    mem_path = f"/proc/{pid}/mem"
-
     try:
-        heap_start = None
-        heap_end = None
-
-        # Find heap segment
-        with open(maps_path, "r") as maps_file:
+        # Locate heap
+        with open(f"/proc/{pid}/maps") as maps_file:
+            heap_start = heap_end = None
             for line in maps_file:
                 if "[heap]" in line:
                     start, end = line.split()[0].split("-")
-                    heap_start = int(start, 16)
-                    heap_end = int(end, 16)
+                    heap_start, heap_end = int(start, 16), int(end, 16)
                     break
 
-        if heap_start is None:
-            print("Heap not found.")
-            sys.exit(1)
+            if heap_start is None:
+                print("Heap not found.")
+                sys.exit(1)
 
-        # Open memory
-        with open(mem_path, "r+b") as mem_file:
-            # Read heap
+        # Open process memory
+        with open(f"/proc/{pid}/mem", "r+b") as mem_file:
+            # Search the heap byte by byte
             mem_file.seek(heap_start)
-            heap = mem_file.read(heap_end - heap_start)
+            offset = 0
+            chunk_size = len(search)
+            while offset <= heap_end - heap_start - len(search):
+                mem_file.seek(heap_start + offset)
+                chunk = mem_file.read(len(search))
+                if chunk == search:
+                    mem_file.seek(heap_start + offset)
+                    mem_file.write(replace)  # Only overwrite replacement bytes
+                    print("String replaced.")
+                    return
+                offset += 1
 
-            # Find first occurrence of search string
-            index = heap.find(search)
-            if index == -1:
-                print("String not found.")
-                sys.exit(0)
-
-            # Overwrite only the bytes of the replacement string
-            mem_file.seek(heap_start + index)
-            mem_file.write(replace)
-
-            print("String replaced.")
+            # Not found
+            print("String not found.")
+            sys.exit(0)
 
     except Exception:
         sys.exit(1)
