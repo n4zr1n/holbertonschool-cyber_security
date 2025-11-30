@@ -35,8 +35,7 @@ def main():
         with open(maps_path, "r") as maps_file:
             for line in maps_file:
                 if "[heap]" in line:
-                    addr = line.split()[0]
-                    start, end = addr.split("-")
+                    start, end = line.split()[0].split("-")
                     heap_start = int(start, 16)
                     heap_end = int(end, 16)
                     break
@@ -45,22 +44,21 @@ def main():
             print("Heap not found.")
             sys.exit(1)
 
-        # Read and write heap
         with open(mem_path, "r+b") as mem_file:
-            mem_file.seek(heap_start)
-            heap = mem_file.read(heap_end - heap_start)
+            # Search string in heap byte by byte
+            for offset in range(heap_end - heap_start - len(search) + 1):
+                mem_file.seek(heap_start + offset)
+                chunk = mem_file.read(len(search))
+                if chunk == search:
+                    # Overwrite only the first len(replace) bytes
+                    mem_file.seek(heap_start + offset)
+                    mem_file.write(replace)
+                    print("String replaced.")
+                    return
 
-            index = heap.find(search)
-            if index == -1:
-                print("String not found.")
-                sys.exit(0)
-
-            # Replace exactly len(search) bytes
-            mem_file.seek(heap_start + index)
-            data = replace.ljust(len(search), b'\0')
-            mem_file.write(data)
-
-            print("String replaced.")
+            # String not found
+            print("String not found.")
+            sys.exit(0)
 
     except Exception:
         sys.exit(1)
