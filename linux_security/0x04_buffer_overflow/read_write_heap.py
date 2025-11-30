@@ -1,7 +1,9 @@
+
 #!/usr/bin/python3
 
 """
-read_write_heap.py - Script to search and replace a string in the heap of a running process.
+read_write_heap.py - Script to search and replace a string in
+the heap of a running process.
 
 Usage:
     python3 read_write_heap.py pid search_string replace_string
@@ -47,10 +49,14 @@ def find_and_replace_in_heap(pid, search_string, replace_string):
             mem_file.seek(heap_start)
             heap_data = mem_file.read(heap_end - heap_start)
 
-            # Ensure the replacement string is not longer than the search string
+            # Ensure the replacement string is not longer
+            # than the search string
             if len(replace_string) > len(search_string):
                 print(
-                    "Warning: Replacement string is longer than the search string. This may cause memory corruption.")
+                    "Warning: Replacement string is longer"
+                    "than the search string."
+                    "This may cause memory corruption."
+                    )
 
             # Search for the target string in the heap
             offset = heap_data.find(search_string)
@@ -78,7 +84,8 @@ def find_and_replace_in_heap(pid, search_string, replace_string):
 
 def main():
     """
-    Main function to handle input arguments and execute the heap string replacement.
+    Main function to handle input arguments
+    and execute the heap string replacement.
     """
 
     try:
