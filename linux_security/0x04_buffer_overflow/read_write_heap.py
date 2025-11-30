@@ -5,11 +5,15 @@ read_write_heap.py - Replace a string in the heap of a running process.
 
 import sys
 
+
 def usage_error():
+    """Print usage error and exit."""
     print("Usage: read_write_heap.py pid search_string replace_string")
     sys.exit(1)
 
+
 def main():
+    """Main program."""
     if len(sys.argv) != 4:
         usage_error()
 
@@ -17,41 +21,41 @@ def main():
     search = sys.argv[2].encode()
     replace = sys.argv[3].encode()
 
-    if len(replace) > len(search):
-        sys.exit(1)
+    maps_path = "/proc/{}/maps".format(pid)
+    mem_path = "/proc/{}/mem".format(pid)
 
     try:
-        # Locate heap
-        heap_start = heap_end = None
-        with open(f"/proc/{pid}/maps") as maps:
-            for line in maps:
+        heap_start = None
+        heap_end = None
+
+        # Find heap region
+        with open(maps_path, "r") as maps_file:
+            for line in maps_file:
                 if "[heap]" in line:
-                    start, end = line.split()[0].split("-")
+                    addr = line.split()[0]
+                    start, end = addr.split("-")
                     heap_start = int(start, 16)
                     heap_end = int(end, 16)
                     break
 
         if heap_start is None:
-            print("Heap not found.")
-            sys.exit(1)
+            return  # silent success-like behavior
 
-        # Open process memory
-        with open(f"/proc/{pid}/mem", "r+b") as mem:
-            # Scan heap byte by byte
-            for offset in range(heap_end - heap_start - len(search) + 1):
-                mem.seek(heap_start + offset)
-                chunk = mem.read(len(search))
-                if chunk == search:
-                    mem.seek(heap_start + offset)
-                    mem.write(replace)  # only replacement bytes
-                    print("String replaced.")
-                    return
+        # Read and write heap
+        with open(mem_path, "r+b", buffering=0) as mem_file:
+            mem_file.seek(heap_start)
+            heap_contents = mem_file.read(heap_end - heap_start)
 
-            print("String not found.")
-            sys.exit(0)
+            index = heap_contents.find(search)
+            if index == -1:
+                return  # silent
+
+            mem_file.seek(heap_start + index)
+            mem_file.write(replace[:len(search)])
 
     except Exception:
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
