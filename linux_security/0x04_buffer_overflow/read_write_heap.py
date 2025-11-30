@@ -7,13 +7,13 @@ import sys
 
 
 def usage_error():
-    """Print usage error and exit with 1."""
+    """Print usage error and exit."""
     print("Usage: read_write_heap.py pid search_string replace_string")
     sys.exit(1)
 
 
 def main():
-    """Main program logic."""
+    """Main program."""
     if len(sys.argv) != 4:
         usage_error()
 
@@ -28,7 +28,7 @@ def main():
         heap_start = None
         heap_end = None
 
-        # Find heap range
+        # Find heap region
         with open(maps_path, "r") as maps_file:
             for line in maps_file:
                 if "[heap]" in line:
@@ -39,22 +39,19 @@ def main():
                     break
 
         if heap_start is None:
-            return  # silent
+            return  # silent success-like behavior
 
-        # Read & write heap memory
+        # Read and write heap
         with open(mem_path, "r+b", buffering=0) as mem_file:
             mem_file.seek(heap_start)
-            heap_data = mem_file.read(heap_end - heap_start)
+            heap_contents = mem_file.read(heap_end - heap_start)
 
-            idx = heap_data.find(search)
-            if idx == -1:
+            index = heap_contents.find(search)
+            if index == -1:
                 return  # silent
 
-            mem_file.seek(heap_start + idx)
+            mem_file.seek(heap_start + index)
             mem_file.write(replace[:len(search)])
-
-            # ✔ EXACT string required by Check 7 and 9
-            print("String replaced")
 
     except Exception:
         sys.exit(1)
