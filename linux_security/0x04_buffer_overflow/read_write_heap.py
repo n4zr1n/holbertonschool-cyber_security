@@ -1,94 +1,72 @@
 #!/usr/bin/python3
 """
-read_write_heap.py - Find and replace strings in the heap memory
-of a running Linux process.
+read_write_heap.py - Find and replace a string in the heap of a running process.
 
 Usage:
     read_write_heap.py pid search_string replace_string
 """
 
 import sys
-import os
 
 
-def print_usage():
-    """Print usage error message."""
+def error():
+    """Print usage error and exit with status 1."""
     print("Usage: read_write_heap.py pid search_string replace_string")
     sys.exit(1)
 
 
 def main():
-    """Main function: parse args, read heap, replace string."""
+    """Main program."""
     if len(sys.argv) != 4:
-        print_usage()
+        error()
 
     pid = sys.argv[1]
-    search = sys.argv[2].encode("ascii")
-    replace = sys.argv[3].encode("ascii")
+    search = sys.argv[2]
+    replace = sys.argv[3]
 
-    # Replacement string must be same length or shorter
-    if len(replace) > len(search):
-        print("replace_string must not be longer than search_string")
-        sys.exit(1)
+    if len(search) != len(replace):
+        error()
 
-    # Pad replacement to the same length (avoids corrupting heap)
-    replace = replace.ljust(len(search), b'\x00')
+    search_b = search.encode("ascii")
+    replace_b = replace.encode("ascii")
 
     maps_path = "/proc/{}/maps".format(pid)
     mem_path = "/proc/{}/mem".format(pid)
 
     try:
-        with open(maps_path, "r") as maps_file:
-            heap_start = None
-            heap_end = None
+        heap_start = None
+        heap_end = None
 
+        with open(maps_path, "r") as maps_file:
             for line in maps_file:
                 if "[heap]" in line:
                     parts = line.split()
-                    addresses = parts[0]
+                    addr = parts[0]
                     perms = parts[1]
 
                     if "rw" not in perms:
-                        print("Heap is not writable.")
                         sys.exit(1)
 
-                    heap_start, heap_end = [
-                        int(x, 16) for x in addresses.split("-")
-                    ]
+                    start_str, end_str = addr.split("-")
+                    heap_start = int(start_str, 16)
+                    heap_end = int(end_str, 16)
                     break
 
-        if heap_start is None or heap_end is None:
-            print("Could not find heap segment")
+        if heap_start is None:
             sys.exit(1)
 
-        print("[*] Heap found from 0x{:x} to 0x{:x}".format(
-            heap_start, heap_end))
-
-        with open(mem_path, "r+b") as mem_file:
+        with open(mem_path, "r+b", buffering=0) as mem_file:
             mem_file.seek(heap_start)
             heap_data = mem_file.read(heap_end - heap_start)
 
-            idx = heap_data.find(search)
+            idx = heap_data.find(search_b)
             if idx == -1:
-                print("Search string not found in heap")
-                sys.exit(0)
-
-            print("[*] Found string at offset:", idx)
-            print("[*] Writing replacement...")
+                return
 
             mem_file.seek(heap_start + idx)
-            mem_file.write(replace)
+            mem_file.write(replace_b)
 
-            print("[+] Replacement complete!")
-
-    except FileNotFoundError:
-        print("Process does not exist")
-        sys.exit(1)
-    except PermissionError:
-        print("Permission denied: run with sudo")
-        sys.exit(1)
-    except Exception as exc:
-        print("Error:", exc)
+    except Exception:
         sys.exit(1)
 
 
