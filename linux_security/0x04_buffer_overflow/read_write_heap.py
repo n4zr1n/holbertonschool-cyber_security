@@ -1,97 +1,96 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """
-A script to find and replace a string in the heap memory of a running process.
+read_write_heap.py - Find and replace strings in the heap memory
+of a running Linux process.
 
 Usage:
-    ./read_write_heap.py pid search_string replace_string
-
-Arguments:
-    pid: The process ID to inspect.
-    search_string: The string to search for in the heap.
-    replace_string: The string to replace it with.
+    read_write_heap.py pid search_string replace_string
 """
 
-import os
 import sys
-import re
+import os
 
-def usage():
-    """Print usage message and exit with status code 1."""
-    print("Usage: ./read_write_heap.py pid search_string replace_string")
+
+def print_usage():
+    """Print usage error message."""
+    print("Usage: read_write_heap.py pid search_string replace_string")
     sys.exit(1)
 
-def read_write_heap(pid, search_string, replace_string):
-    """Find and replace a string in the heap of a process."""
-    try:
-        # Validate PID
-        pid = int(pid)
-    except ValueError:
-        print("Error: PID must be an integer.")
-        usage()
 
-    # Paths to memory maps and memory
-    maps_path = f"/proc/{pid}/maps"
-    mem_path = f"/proc/{pid}/mem"
+def main():
+    """Main function: parse args, read heap, replace string."""
+    if len(sys.argv) != 4:
+        print_usage()
+
+    pid = sys.argv[1]
+    search = sys.argv[2].encode("ascii")
+    replace = sys.argv[3].encode("ascii")
+
+    # Replacement string must be same length or shorter
+    if len(replace) > len(search):
+        print("replace_string must not be longer than search_string")
+        sys.exit(1)
+
+    # Pad replacement to the same length (avoids corrupting heap)
+    replace = replace.ljust(len(search), b'\x00')
+
+    maps_path = "/proc/{}/maps".format(pid)
+    mem_path = "/proc/{}/mem".format(pid)
 
     try:
-        # Open the memory maps file
         with open(maps_path, "r") as maps_file:
-            heap = None
+            heap_start = None
+            heap_end = None
+
             for line in maps_file:
                 if "[heap]" in line:
-                    heap = line
+                    parts = line.split()
+                    addresses = parts[0]
+                    perms = parts[1]
+
+                    if "rw" not in perms:
+                        print("Heap is not writable.")
+                        sys.exit(1)
+
+                    heap_start, heap_end = [
+                        int(x, 16) for x in addresses.split("-")
+                    ]
                     break
-            
-            if not heap:
-                print("Error: Could not find the heap segment.")
-                sys.exit(1)
 
-            # Extract start and end addresses of the heap
-            heap_start, heap_end = [int(x, 16) for x in heap.split()[0].split("-")]
+        if heap_start is None or heap_end is None:
+            print("Could not find heap segment")
+            sys.exit(1)
 
-        # Open the memory file for reading and writing
+        print("[*] Heap found from 0x{:x} to 0x{:x}".format(
+            heap_start, heap_end))
+
         with open(mem_path, "r+b") as mem_file:
-            # Seek to the start of the heap
             mem_file.seek(heap_start)
-            # Read heap content
             heap_data = mem_file.read(heap_end - heap_start)
 
-            # Search for the target string
-            search_bytes = search_string.encode()
-            replace_bytes = replace_string.encode()
+            idx = heap_data.find(search)
+            if idx == -1:
+                print("Search string not found in heap")
+                sys.exit(0)
 
-            if len(replace_bytes) > len(search_bytes):
-                print("Error: Replacement string must not be longer than the search string.")
-                sys.exit(1)
+            print("[*] Found string at offset:", idx)
+            print("[*] Writing replacement...")
 
-            offset = heap_data.find(search_bytes)
-            if offset == -1:
-                print("Error: Search string not found in the heap.")
-                sys.exit(1)
+            mem_file.seek(heap_start + idx)
+            mem_file.write(replace)
 
-            # Replace the string
-            mem_file.seek(heap_start + offset)
-            mem_file.write(replace_bytes.ljust(len(search_bytes), b'\x00'))
+            print("[+] Replacement complete!")
 
-            print(f"Successfully replaced '{search_string}' with '{replace_string}' in the heap.")
-
-    except PermissionError:
-        print("Error: Permission denied. Try running as sudo.")
-        sys.exit(1)
     except FileNotFoundError:
-        print("Error: Process not found. Is the PID correct?")
+        print("Process does not exist")
         sys.exit(1)
-    except Exception as e:
-        print(f"Unexpected error: {e}")
+    except PermissionError:
+        print("Permission denied: run with sudo")
+        sys.exit(1)
+    except Exception as exc:
+        print("Error:", exc)
         sys.exit(1)
 
-# Main logic
+
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        usage()
-    
-    pid = sys.argv[1]
-    search_string = sys.argv[2]
-    replace_string = sys.argv[3]
-
-    read_write_heap(pid, search_string, replace_string)
+    main()
