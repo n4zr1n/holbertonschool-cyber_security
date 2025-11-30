@@ -39,21 +39,29 @@ def main():
                     break
 
         if heap_start is None:
-            return  # silent success-like behavior
+            print("Heap not found.")
+            sys.exit(1)
 
-        # Read and write heap
+        # Read and write memory
         with open(mem_path, "r+b", buffering=0) as mem_file:
             mem_file.seek(heap_start)
-            heap_contents = mem_file.read(heap_end - heap_start)
+            heap = mem_file.read(heap_end - heap_start)
 
-            index = heap_contents.find(search)
+            index = heap.find(search)
             if index == -1:
-                return  # silent
+                print("String not found.")
+                sys.exit(0)
 
+            # Write replacement
             mem_file.seek(heap_start + index)
-            mem_file.write(replace[:len(search)])
+            # pad replace to same size if needed
+            new = replace.ljust(len(search), b'\0')
+            mem_file.write(new)
 
-    except Exception:
+            print("String replaced.")
+
+    except Exception as e:
+        print("Error:", e)
         sys.exit(1)
 
 
