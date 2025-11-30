@@ -22,7 +22,7 @@ def main():
     replace = sys.argv[3].encode()
 
     if len(replace) > len(search):
-        sys.exit(1)  # replacement too long
+        sys.exit(1)
 
     maps_path = f"/proc/{pid}/maps"
     mem_path = f"/proc/{pid}/mem"
@@ -35,7 +35,8 @@ def main():
         with open(maps_path, "r") as maps_file:
             for line in maps_file:
                 if "[heap]" in line:
-                    start, end = line.split()[0].split("-")
+                    addr = line.split()[0]
+                    start, end = addr.split("-")
                     heap_start = int(start, 16)
                     heap_end = int(end, 16)
                     break
@@ -54,8 +55,11 @@ def main():
                 print("String not found.")
                 sys.exit(0)
 
+            # Replace exactly len(search) bytes
             mem_file.seek(heap_start + index)
-            mem_file.write(replace)  # only overwrite what we need
+            data = replace.ljust(len(search), b'\0')
+            mem_file.write(data)
+
             print("String replaced.")
 
     except Exception:
