@@ -2,12 +2,12 @@
 
 LOGFILE="${1:-logs.txt}"
 
-# Step 1: find attacker IP
+# 1. Identify attacker IP
 ATTACKER_IP=$(grep -o '[0-9]\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}' "$LOGFILE" \
     | sort | uniq -c | sort -nr | head -1 | awk '{print $2}')
 
-# Step 2: extract User-Agent strings for this IP
+# 2. Extract User-Agent (4th quoted field)
 grep "$ATTACKER_IP" "$LOGFILE" \
-    | awk -F\" '{print $(NF-1)}' \
-    | sort | uniq -c | sort -nr | head -1 \
-    | awk '{print $2}'
+    | awk -F\" '{print $6}' \
+    | sort | uniq -c | sort -nr \
+    | head -1 | awk '{print $2}'
