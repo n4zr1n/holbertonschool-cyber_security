@@ -7,9 +7,8 @@ if [ ! -f $LOGFILE ]; then
     exit 1
 fi
 
-# Extract created users
-tail -n 1000 $LOGFILE \
-    | grep -i "useradd" \
+# Extract all users created by useradd
+grep -i "useradd" "$LOGFILE" \
     | grep -o "name=[^, ]*" \
     | cut -d= -f2 \
     | sort \
