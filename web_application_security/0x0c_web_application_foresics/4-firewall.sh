@@ -13,5 +13,5 @@ then
     exit 1
 fi
 
-# Count all firewall additions
-tail -n 1000 $LOGFILE | grep -iE "iptables.*-A|ufw allow" | wc -l
+# Count all firewall rules added (entries mentioning firewall)
+tail -n 1000 $LOGFILE | grep -i "firewall" | wc -l
