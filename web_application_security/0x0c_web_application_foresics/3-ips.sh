@@ -13,6 +13,10 @@ then
     exit 1
 fi
 
-# Count unique IPs of successful SSH logins
-tail -n 1000 $LOGFILE | grep "Accepted password" | awk '{print $11}' \
-    | sort | uniq | wc -l
+# Extract unique IPs that successfully logged in
+tail -n 1000 $LOGFILE \
+    | grep "Accepted" \
+    | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" \
+    | sort \
+    | uniq \
+    | wc -l
