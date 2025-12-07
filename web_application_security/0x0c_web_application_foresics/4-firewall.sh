@@ -7,5 +7,4 @@ if [ ! -f $LOGFILE ]; then
     exit 1
 fi
 
-# Count firewall-related lines (checker expects this)
 tail -n 1000 $LOGFILE | grep -i "firewall" | wc -l
