@@ -13,9 +13,8 @@ then
     exit 1
 fi
 
-# Extract unique IPs that successfully logged in
 tail -n 1000 $LOGFILE \
-    | grep "Accepted" \
+    | grep -E "Failed password|Invalid user|Accepted password" \
     | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" \
     | sort \
     | uniq \
