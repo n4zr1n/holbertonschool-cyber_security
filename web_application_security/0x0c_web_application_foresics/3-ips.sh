@@ -13,5 +13,8 @@ then
     exit 1
 fi
 
-# Extract all IP addresses
-tail -n 1000 $LOGFILE | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | sort | uniq | wc -l
+tail -n 1000 $LOGFILE \
+    | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" \
+    | sort \
+    | uniq \
+    | wc -l
