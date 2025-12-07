@@ -13,5 +13,5 @@ then
     exit 1
 fi
 
-# Count all firewall rules added (entries mentioning firewall)
+# Count all firewall rule additions (case-insensitive)
 tail -n 1000 $LOGFILE | grep -i "firewall" | wc -l
