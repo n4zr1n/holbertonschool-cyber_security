@@ -13,6 +13,7 @@ then
     exit 1
 fi
 
+# Count all firewall-related lines (broad catch-all)
 tail -n 1000 $LOGFILE \
-    | grep -iE "iptables.*-A|ufw allow|rule added|ACCEPT|DROP" \
+    | grep -iE "iptables|ufw|firewall|rule" \
     | wc -l
