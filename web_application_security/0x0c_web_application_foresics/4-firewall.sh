@@ -13,4 +13,6 @@ then
     exit 1
 fi
 
-tail -n 1000 $LOGFILE | grep -i "firewall" | wc -l
+tail -n 1000 $LOGFILE \
+    | grep -iE "iptables.*-A|ufw allow|rule added|ACCEPT|DROP" \
+    | wc -l
