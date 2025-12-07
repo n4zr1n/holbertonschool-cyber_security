@@ -1,11 +1,18 @@
 #!/bin/bash
 
-LOGFILE=${1:-auth.log}
+if [ -z $1 ]
+then
+    LOGFILE="auth.log"
+else
+    LOGFILE=$1
+fi
 
-if [ ! -f $LOGFILE ]; then
+if [ ! -f $LOGFILE ]
+then
     echo "Log file not found"
     exit 1
 fi
 
-# Count firewall-related lines
-tail -n 1000 $LOGFILE | grep -i "firewall" | wc -l
+tail -n 1000 $LOGFILE \
+    | grep -iE "iptables.*-A|ufw allow|rule added|ACCEPT|DROP" \
+    | wc -l
