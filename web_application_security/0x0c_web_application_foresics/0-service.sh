@@ -1,13 +1,12 @@
 #!/bin/bash
 
-# Check if argument was provided
+# If no argument, default to auth.log
 if [ -z $1 ]
 then
-    echo "Usage: $0 <logfile>"
-    exit 1
+    LOGFILE="auth.log"
+else
+    LOGFILE=$1
 fi
-
-LOGFILE=$1
 
 # Check if file exists
 if [ ! -f $LOGFILE ]
