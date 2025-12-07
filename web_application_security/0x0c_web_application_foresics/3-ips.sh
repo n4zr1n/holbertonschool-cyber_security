@@ -13,9 +13,5 @@ then
     exit 1
 fi
 
-tail -n 1000 $LOGFILE \
-    | grep -E "Accepted" \
-    | awk '/from/{for(i=1;i<=NF;i++)if($i=="from")print $(i+1)}' \
-    | sort \
-    | uniq \
-    | wc -l
+# Extract all IP addresses
+tail -n 1000 $LOGFILE | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | sort | uniq | wc -l
