@@ -44,8 +44,6 @@ if options[:list]
   tasks = File.readlines(TASK_FILE, chomp: true)
 
   puts "Tasks:"
-  puts
-
   tasks.each_with_index do |task, index|
     puts "#{index + 1}. #{task}"
   end
