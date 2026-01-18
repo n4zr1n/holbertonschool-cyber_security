@@ -17,7 +17,14 @@ def post_request(url, body_params = {})
   # Print status
   puts "Response status: #{response.code} #{response.message}"
 
-  # Print body as compact JSON
+  # Print body
   puts "Response body:"
-  puts JSON.parse(response.body).to_json
+
+  # JSON if body is not empty
+  begin
+    parsed_body = JSON.parse(response.body)
+    puts JSON.pretty_generate(parsed_body)
+  rescue JSON::ParserError
+    puts response.body
+  end
 end
