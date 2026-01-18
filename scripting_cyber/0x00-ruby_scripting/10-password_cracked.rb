@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require 'digest'
+
+# Check arguments
+if ARGV.length != 2
+  puts 'Usage: 10-passwordcracked.rb HASHEDPASSWORD DICTIONARY_FILE'
+  exit
+end
+
+hashed_password = ARGV[0]
+dictionary_file = ARGV[1]
+
+found = false
+
+File.foreach(dictionary_file) do |line|
+  word = line.strip
+  hash = Digest::SHA256.hexdigest(word)
+
+  if hash == hashed_password
+    puts "Password found: #{word}"
+    found = true
+    break
+  end
+end
+
+puts 'Password not found in dictionary.' unless found
