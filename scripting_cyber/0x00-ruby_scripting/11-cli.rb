@@ -54,6 +54,6 @@ if options[:remove]
   end
   removed_task = tasks.delete_at(index - 1)
   File.open(TASK_FILE, 'w') { |f| tasks.each { |t| f.puts t } }
-  puts "Task '#{removed_task}' removed."
+  puts "#{index + 1}. Task '#{removed_task}' removed."
   exit
 end
