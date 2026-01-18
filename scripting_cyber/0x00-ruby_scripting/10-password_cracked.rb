@@ -2,9 +2,8 @@
 
 require 'digest'
 
-# Check arguments
 if ARGV.length != 2
-  puts 'Usage: 10-passwordcracked.rb HASHED_PASSWORD DICTIONARY_FILE'
+  puts 'Usage: 10-password_cracked.rb HASHED_PASSWORD DICTIONARY_FILE'
   exit
 end
 
