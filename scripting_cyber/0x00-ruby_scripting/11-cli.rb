@@ -5,11 +5,11 @@ require 'fileutils'
 
 TASK_FILE = 'tasks.txt'
 
-# Ensure the tasks file exists
 FileUtils.touch(TASK_FILE) unless File.exist?(TASK_FILE)
 
 options = {}
-OptionParser.new do |opts|
+
+parser = OptionParser.new do |opts|
   opts.banner = "Usage: cli.rb [options]"
 
   opts.on("-a", "--add TASK", "Add a new task") do |task|
@@ -28,32 +28,42 @@ OptionParser.new do |opts|
     puts opts
     exit
   end
-end.parse!
+end
 
-# Handle add
+parser.parse!
+
+# ADD
 if options[:add]
   File.open(TASK_FILE, 'a') { |f| f.puts options[:add] }
   puts "Task '#{options[:add]}' added."
   exit
 end
 
-# Handle list
+# LIST
 if options[:list]
   tasks = File.readlines(TASK_FILE, chomp: true)
-  tasks.each { |t| puts t }
+
+  puts "Tasks:"
+  puts
+
+  tasks.each_with_index do |task, index|
+    puts "#{index + 1}. #{task}"
+  end
   exit
 end
 
-# Handle remove
+# REMOVE
 if options[:remove]
-  index = options[:remove]
   tasks = File.readlines(TASK_FILE, chomp: true)
+  index = options[:remove]
+
   if index < 1 || index > tasks.length
     puts "Invalid index."
     exit
   end
-  removed_task = tasks.delete_at(index - 1)
+
+  removed = tasks.delete_at(index - 1)
   File.open(TASK_FILE, 'w') { |f| tasks.each { |t| f.puts t } }
-  puts "#{index + 1}. Task '#{removed_task}' removed."
+  puts "Task '#{removed}' removed."
   exit
 end
