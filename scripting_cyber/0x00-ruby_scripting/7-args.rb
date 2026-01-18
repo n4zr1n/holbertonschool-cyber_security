@@ -5,7 +5,7 @@ def print_arguments
     puts 'No arguments provided.'
   else
     puts 'Arguments:'
-    puts ''
+    puts ''  # blank line after header
 
     ARGV.each_with_index do |arg, index|
       puts "#{index + 1}. #{arg}"
