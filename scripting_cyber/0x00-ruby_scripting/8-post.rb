@@ -20,10 +20,13 @@ def post_request(url, body_params = {})
   # Print body
   puts "Response body:"
 
-  # JSON if body is not empty
   begin
     parsed_body = JSON.parse(response.body)
-    puts JSON.pretty_generate(parsed_body)
+    if parsed_body.empty?
+      puts '{}'  # compact JSON for empty object
+    else
+      puts JSON.pretty_generate(parsed_body)
+    end
   rescue JSON::ParserError
     puts response.body
   end
