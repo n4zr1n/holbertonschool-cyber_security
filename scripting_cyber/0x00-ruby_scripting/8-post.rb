@@ -17,7 +17,7 @@ def post_request(url, body_params = {})
   # Print status
   puts "Response status: #{response.code} #{response.message}"
 
-  # Print body
+  # Print body as compact JSON
   puts "Response body:"
-  puts JSON.pretty_generate(JSON.parse(response.body))
+  puts JSON.parse(response.body).to_json
 end
